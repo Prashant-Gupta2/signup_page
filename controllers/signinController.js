@@ -18,6 +18,7 @@ const LoginUser = async(req,res)=>{
   })
   }
   let checkPassword = await bcrypt.compare(password,user.password)
+  
    if(!checkPassword){
     return res.status(404).json({
      message:'Password is incorrect'
@@ -26,7 +27,7 @@ const LoginUser = async(req,res)=>{
    else{  
     const loggedinUser = await Signin.create({
     email:email,
-    password:password
+    password:user.password
   })
   res.status(200).json({
    message:'Login success',

@@ -7,10 +7,12 @@ app.use(express.json());
 app.use(express.urlencoded({extended:true}))
 const signupRoute = require('./routes/signupRoutes')
 const signinRoute = require('./routes/loginRoutes')
+const expenseRoute = require('./routes/expenseRoute')
 
 
 app.use('/user',signupRoute);
-app.use('/user',signinRoute)
+app.use('/user',signinRoute);
+app.use('/',expenseRoute);
 
 db.sync()
 .then(()=>{

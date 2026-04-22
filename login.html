@@ -136,6 +136,8 @@
         const res = await axios.post(url, payload);
 
         alert(res.data.message || "Login successful!");
+
+        location.href="/expense.html"
       } catch (err) {
         console.log(err.response?.data);
         alert(err.response?.data?.message || "Login failed");

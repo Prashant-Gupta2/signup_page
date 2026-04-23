@@ -14,7 +14,15 @@
       align-items: center;
       height: 100vh;
     }
-
+    .btn{
+      background-color: brown;
+       display: inline-block;
+      padding: 7px;
+      border-radius: 3px;
+      color: #fff;
+      cursor: pointer;
+      margin-top: 5px;
+    }
     .container {
       background: white;
       padding: 25px;
@@ -71,6 +79,7 @@
 <body>
 
   <div class="container">
+    <h4> Dashboard</h4>
     <h2>Add Expense</h2>
 
     <form id="form">
@@ -81,9 +90,9 @@
       <select required id="category">
         <option value="">Select Category</option>
         <option value="food">Food</option>
-        <option value="travel">Travel</option>
+        <option value="petrol">Travel</option>
         <option value="shopping">Shopping</option>
-        <option value="bills">Bills</option>
+        <option value="salary">Bills</option>
         <option value="other">Other</option>
       </select>
 
@@ -99,8 +108,10 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
  <script>
    let form = document.getElementById("form")
+
    document.addEventListener("DOMContentLoaded",()=>{
-    form.addEventListener("submit",(e)=>{
+       getExpenses();
+    form.addEventListener("submit", async(e)=>{
      e.preventDefault();
      try{
       const payoad={
@@ -108,15 +119,47 @@
        description:document.getElementById("desc").value,
        category:document.getElementById("category").value
       }
-     let res = axios.post("http://localhost:3000/expense",payoad)
+     let res = await axios.post("http://localhost:3000/expense",payoad)
      alert('Expense Added!');
+     getExpenses();
      }
      catch(err){
       console.log(err)
      }
     })
-    function getExpenses(){
-      
+    let expenses =[]
+   async function getExpenses(){
+    let list = document.getElementById("list")
+     list.innerHTML =""
+     try{
+      let res = await axios.get("http://localhost:3000/expense");
+      expenses = res.data.data;
+     expenses.forEach((item) => {
+    let li = document.createElement("li");
+   
+    li.innerText = `${item.amount} - ${item.category} `;
+
+    let btn = document.createElement("span");
+    btn.addEventListener("click",async()=>{
+     try{
+      await axios.delete(`http://localhost:3000/expense/${item.id}`)
+      getExpenses();
+     }
+     catch(err){
+      console.log(err)
+     }
+    })
+    btn.classList.add("btn")
+    btn.innerText = "Del";
+    let hr = document.createElement("hr")
+    li.appendChild(btn);
+     li.appendChild(hr)
+    list.appendChild(li);
+    });
+     }
+     catch(err){
+      console.log(err)
+     }
     }
    })
  </script>

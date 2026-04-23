@@ -2,13 +2,19 @@ const { bytes } = require('node:stream/consumers');
 const Signin = require('../models/signin')
 const Signup = require('../models/signup')
 const bcrypt = require('bcrypt')
+const path   = require('path')
+const jwt = require('jsonwebtoken')
 
+
+function getToken(user){
+  return jwt.sign({id:user.id,email:user.email}, "mysecret")
+}
 const LoginUser = async(req,res)=>{
  try{
   const {email,password} = req.body;
   const user = await Signup.findOne({
    where:{
-    email:email
+    email:email 
    }
   });
   
@@ -24,16 +30,14 @@ const LoginUser = async(req,res)=>{
      message:'Password is incorrect'
     })
    }
-   else{  
-    const loggedinUser = await Signin.create({
-    email:email,
-    password:user.password
-  })
-  res.status(200).json({
-   message:'Login success',
-   data:loggedinUser
-  })
-   } 
+   const token = getToken(user);
+
+    return res.status(200).json({
+      message:'Login success',
+      token: token
+    })
+
+   
   }
  catch(err){
   console.error(err)

@@ -10,7 +10,7 @@ const createAccount = async(req,res) =>{
 
     const existingUser = await Signup.findOne({
       where:{
-          email:email
+          email
       }
      });
    const hashPassword = await bcrypt.hash(password,10);

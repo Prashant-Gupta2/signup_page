@@ -8,18 +8,19 @@ app.use(express.urlencoded({extended:true}))
 const signupRoute = require('./routes/signupRoutes')
 const signinRoute = require('./routes/loginRoutes')
 const expenseRoute = require('./routes/expenseRoute')
-const path = require('path');
-const Expence = require('./models/expense')
-const Users = require('./models/signup')
+const Expense = require('./models/expense')
+const Signup = require('./models/signup')
+const premimumRoute = require('./routes/premiumRoute')
 
 
 // one to many relation
-Users.hasMany(Expence);
-Expence.belongsTo(Users);
+Signup.hasMany(Expense, { foreignKey: 'userId' });
+Expense.belongsTo(Signup, { foreignKey: 'userId' });
 
 app.use('/user',signupRoute);
 app.use('/user',signinRoute);
 app.use('/',expenseRoute);
+app.use('/premium',premimumRoute);
 
 
 db.sync()

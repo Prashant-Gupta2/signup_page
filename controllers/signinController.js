@@ -1,48 +1,49 @@
-const { bytes } = require('node:stream/consumers');
-const Signin = require('../models/signin')
-const Signup = require('../models/signup')
-const bcrypt = require('bcrypt')
-const path   = require('path')
-const jwt = require('jsonwebtoken')
+const Signup = require('../models/signup');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
+const LoginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-function getToken(user){
-  return jwt.sign({id:user.id,email:user.email}, "mysecret")
-}
-const LoginUser = async(req,res)=>{
- try{
-  const {email,password} = req.body;
-  const user = await Signup.findOne({
-   where:{
-    email:email 
-   }
-  });
-  
-  if(!user){
-  return res.status(404).json({
-  message:'User is not registered'
-  })
-  }
-  let checkPassword = await bcrypt.compare(password,user.password)
-  
-   if(!checkPassword){
-    return res.status(404).json({
-     message:'Password is incorrect'
-    })
-   }
-   const token = getToken(user);
+    const user = await Signup.findOne({
+      where: { email }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        message: 'User is not registered'
+      });
+    }
+
+    const checkPassword = await bcrypt.compare(password, user.password);
+
+    if (!checkPassword) {
+      return res.status(401).json({
+        message: 'Invalid password'
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        email: user.email
+      },
+      "mysecret",
+      { expiresIn: "1h" }
+    );
 
     return res.status(200).json({
-      message:'Login success',
-      token: token
-    })
+      message: "Login success",
+      token
+    });
 
-   
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      error: 'Failed to login'
+    });
   }
- catch(err){
-  console.error(err)
-  return res.status(500).json({Error:'Failed to login'})
- }
-}
+};
 
-module.exports ={LoginUser};
+module.exports = {LoginUser};

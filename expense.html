@@ -14,15 +14,17 @@
       align-items: center;
       height: 100vh;
     }
-    .btn{
+
+    .btn {
       background-color: brown;
-       display: inline-block;
+      display: inline-block;
       padding: 7px;
       border-radius: 3px;
       color: #fff;
       cursor: pointer;
-      margin-top: 5px;
+      margin-left: 10px;
     }
+
     .container {
       background: white;
       padding: 25px;
@@ -33,7 +35,7 @@
 
     h2 {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       color: #333;
     }
 
@@ -43,11 +45,6 @@
       margin: 8px 0;
       border: 1px solid #ccc;
       border-radius: 6px;
-      outline: none;
-    }
-
-    input:focus, select:focus {
-      border-color: #4CAF50;
     }
 
     button {
@@ -57,111 +54,165 @@
       color: white;
       border: none;
       border-radius: 6px;
-      font-size: 16px;
       cursor: pointer;
-      margin-top: 10px;
-      transition: 0.3s;
     }
 
-    button:hover {
-      background: #45a049;
+    ul {
+      list-style: none;
+      padding: 0;
     }
 
-    .note {
-      font-size: 12px;
-      text-align: center;
+    li {
       margin-top: 10px;
-      color: #777;
+      background: #f1f1f1;
+      padding: 8px;
+      border-radius: 5px;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="container">
-    <h4> Dashboard</h4>
-    <h2>Add Expense</h2>
+<div class="container">
 
-    <form id="form">
-      <input type="number" id="amount" placeholder="Enter Amount" required />
+  <h4 id="dash"></h4>
+  <h2>Add Expense</h2>
 
-      <input type="text" id="desc" placeholder="Description" required />
+  <form id="form">
+    <input type="number" id="amount" placeholder="Enter Amount" required />
+    <input type="text" id="desc" placeholder="Description" required />
 
-      <select required id="category">
-        <option value="">Select Category</option>
-        <option value="food">Food</option>
-        <option value="petrol">Travel</option>
-        <option value="shopping">Shopping</option>
-        <option value="salary">Bills</option>
-        <option value="other">Other</option>
-      </select>
+    <select id="category" required>
+      <option value="">Select Category</option>
+      <option value="food">Food</option>
+      <option value="petrol">Travel</option>
+      <option value="shopping">Shopping</option>
+      <option value="salary">Bills</option>
+      <option value="other">Other</option>
+    </select>
 
-      <button type="submit">Add Expense</button>
-    </form>
+    <button type="submit">Add Expense</button>
+  </form>
 
-    <div class="note">
-     <ul id="list">
-     
-     </ul>
-    </div>
-  </div>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
- <script>
-   let form = document.getElementById("form")
+  <ul id="list"></ul>
+ <button onclick="showLeaderboard()">Show Premium</button>
+</div>
+   <div>
+    <h4>Premium user</h4>
+    <ul id="premium">
+     <li>dcjd</li>
+    </ul>
+   </div>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-   document.addEventListener("DOMContentLoaded",()=>{
-       getExpenses();
-    form.addEventListener("submit", async(e)=>{
-     e.preventDefault();
-     try{
-      const payoad={
-       amount:document.getElementById("amount").value,
-       description:document.getElementById("desc").value,
-       category:document.getElementById("category").value
-      }
-     let res = await axios.post("http://localhost:3000/expense",payoad)
-     alert('Expense Added!');
-     getExpenses();
-     }
-     catch(err){
-      console.log(err)
-     }
-    })
-    let expenses =[]
-   async function getExpenses(){
-    let list = document.getElementById("list")
-     list.innerHTML =""
-     try{
-      let res = await axios.get("http://localhost:3000/expense");
-      expenses = res.data.data;
-     expenses.forEach((item) => {
-    let li = document.createElement("li");
-   
-    li.innerText = `${item.amount} - ${item.category} `;
+<script>
+let payload = {};
+let token = localStorage.getItem("token");
+console.log(token)
 
-    let btn = document.createElement("span");
-    btn.addEventListener("click",async()=>{
-     try{
-      await axios.delete(`http://localhost:3000/expense/${item.id}`)
+document.addEventListener("DOMContentLoaded", () => {
+
+  if (!token) {
+    alert("No token found!");
+    return;
+  }
+
+  payload = JSON.parse(atob(token.split(".")[1]));
+
+  document.getElementById("dash").textContent =
+    `${payload.email} - Dashboard`;
+
+  getExpenses();
+
+ let form = document.getElementById("form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    try {
+      const data = {
+        amount: Number(document.getElementById("amount").value), 
+        description: document.getElementById("desc").value,
+        category: document.getElementById("category").value
+      };
+
+      await axios.post("http://localhost:3000/expense", data, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      alert("Expense Added!");
       getExpenses();
-     }
-     catch(err){
-      console.log(err)
-     }
-    })
-    btn.classList.add("btn")
-    btn.innerText = "Del";
-    let hr = document.createElement("hr")
-    li.appendChild(btn);
-     li.appendChild(hr)
-    list.appendChild(li);
-    });
-     }
-     catch(err){
-      console.log(err)
-     }
+
+        document.getElementById("amount").value="" 
+        document.getElementById("desc").value=""
+        document.getElementById("category").value=""
+
+    } catch (err) {
+      console.log(err);
     }
-   })
- </script>
+  });
+});
+
+async function getExpenses() {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  try {
+    const res = await axios.get(
+      `http://localhost:3000/expense`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    const expenses = res.data.data;
+
+    expenses.forEach((item) => {
+      const li = document.createElement("li");
+
+      li.innerText = `${item.amount} - ${item.category}`;
+
+      const btn = document.createElement("span");
+      btn.innerText = " Delete";
+      btn.classList.add("btn");
+
+      btn.addEventListener("click", async () => {
+        try {
+          await axios.delete(
+            `http://localhost:3000/expense/${item.id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`
+              }
+            }
+          );
+
+          getExpenses();
+        } catch (err) {
+          console.log(err);
+        }
+      });
+
+      li.appendChild(btn);
+      list.appendChild(li);
+    });
+
+  } catch (err) {
+    console.log(err);
+  }
+}
+async function showLeaderboard(){
+  try{
+  let res = await axios.get("http://localhost:3000/premium/show-leaderboard");
+  return console.log(res.data)
+  }
+  catch(err){
+   console.log(err)
+  }
+}
+</script>
+
 </body>
 </html>

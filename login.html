@@ -132,20 +132,23 @@
         alert("All fields are required!");
         return;
       }
-      try {
-        const res = axios.post(url, payload);
-        res.then((response)=>{
-         console.log(response.data)
-        localStorage.setItem("token", response.data.token);
-        })
-        alert("Login successful!");
-        
-        window.location.href="/expense.html"
+       try {
+    const response = await axios.post("http://localhost:3000/user/login", payload);
 
-      } catch (err) {
-        console.log(err.response?.data);
-        alert(err.response?.data?.message || "Login failed");
-      }
+    console.log(response.data);
+
+    const token =  response.data.token;
+    // response.data.data?.token ||
+
+    localStorage.setItem("token", token);
+
+    alert("Login successful!");
+    window.location.href = "/expense.html";
+
+  } catch (err) {
+    console.log(err.response?.data);
+    alert(err.response?.data?.message || "Login failed");
+  }
     });
   </script>
 

@@ -4,18 +4,20 @@ const {Sequelize} = require('sequelize')
 
 const getPremium = async(req,res) =>{
  try{
- const result = await Expense.findAll({
+const result = await Signup.findAll({
   attributes: [
-    [Sequelize.col("Signup.name"), "name"],
-    [Sequelize.fn("SUM", Sequelize.col("amount")), "total_expenses"],
+    "id",
+    "name",
+    [Sequelize.fn("SUM", Sequelize.col("Expenses.amount")), "total_expenses"],
   ],
   include: [
     {
-      model: Signup,
+      model: Expense,
       attributes: [],
+      required: false,
     },
   ],
-  group: ["Signup.id", "Signup.name"],
+  group: ["Signup.id"],
   order: [[Sequelize.literal("total_expenses"), "DESC"]],
 });
 if(!result){

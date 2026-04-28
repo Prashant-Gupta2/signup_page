@@ -4,7 +4,8 @@ const db = require('../utils/dbConnection');
 const Expense = db.define('Expense', {
   amount: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    defaultValue:0
   },
   description: {
     type: DataTypes.STRING,

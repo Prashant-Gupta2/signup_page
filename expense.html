@@ -68,6 +68,17 @@
       padding: 8px;
       border-radius: 5px;
     }
+    .right{
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin-left: 10px;
+      background-color: rgb(151, 209, 229);
+      border-radius: 5px;
+      color: black;
+      padding: 5px;
+    }
   </style>
 </head>
 
@@ -95,12 +106,12 @@
   </form>
 
   <ul id="list"></ul>
- <button onclick="showLeaderboard()">Show Premium</button>
+ <button onclick="showLeaderboard()">Show Leaderboard</button>
 </div>
-   <div>
-    <h4>Premium user</h4>
+   <div class="right" style="display: none;">
+    <h2 style="text-decoration: underline;">Leader Board</h2>
     <ul id="premium">
-     <li>dcjd</li>
+
     </ul>
    </div>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
@@ -204,9 +215,24 @@ async function getExpenses() {
   }
 }
 async function showLeaderboard(){
+  let premium = document.getElementById("premium")
+  let rightDiv = document.querySelector(".right");
+  rightDiv.style.display = "block";
+  premium.innerHTML=""
+  let allExpenses =[]
   try{
-  let res = await axios.get("http://localhost:3000/premium/show-leaderboard");
-  return console.log(res.data)
+  let res = await axios.get("http://localhost:3000/premium/show-leaderboard",{
+    headers:{
+     Authorization: `Bearer ${token}`
+    }
+  });
+  allExpenses = res.data
+  allExpenses.forEach((item)=>{
+    let li = document.createElement("li")
+    li.textContent=`Name: ${item.name} - Total Expenses: ${item.total_expenses}`
+    premium.appendChild(li);
+  })
+
   }
   catch(err){
    console.log(err)

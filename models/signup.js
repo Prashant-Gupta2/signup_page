@@ -19,6 +19,10 @@ const Signup = db.define('Signup', {
   password: {
     type: DataTypes.STRING,
     allowNull: false
+  },
+  total_expense:{
+    type:DataTypes.INTEGER,
+    defaultValue:0
   }
 }
 );

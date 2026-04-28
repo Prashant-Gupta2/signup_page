@@ -1,24 +1,50 @@
 const Expense = require('../models/expense');
+const sequelize = require('../utils/dbConnection')
+const User = require('../models/signup')
 
 const addExpense = async (req, res) => {
+  const t = await sequelize.transaction();
+
   try {
     const { amount, description, category } = req.body;
 
-    const expense = await Expense.create({
-      amount,
-      description,
-      category,
-      userId: req.user.userId
-    });
+    if (!amount) {
+      await t.rollback();
+      return res.status(400).json({ error: 'Amount is required' });
+    }
+
+    const expense = await Expense.create(
+      {
+        amount,
+        description,
+        category,
+        userId: req.user.userId,
+      },
+      { transaction: t }
+    );
+
+    const user = await User.findByPk(req.user.userId, { transaction: t });
+
+    const totalExpense = Number(user.total_expense) + Number(amount);
+
+    await user.update(
+      { total_expense: totalExpense },
+      { transaction: t }
+    );
+
+    await t.commit();
 
     return res.status(201).json({
       message: 'Expense Added!',
-      data: expense
+      data: expense,
     });
 
   } catch (err) {
+    await t.rollback();
     console.error(err);
-    res.status(500).json({ Error: 'Failed to add expense' });
+    return res.status(500).json({
+      error: 'Failed to add expense',
+    });
   }
 };
 

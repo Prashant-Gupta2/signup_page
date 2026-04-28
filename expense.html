@@ -93,7 +93,7 @@
     <input type="number" id="amount" placeholder="Enter Amount" required />
     <input type="text" id="desc" placeholder="Description" required />
 
-    <select id="category" required>
+    <select id="category">
       <option value="">Select Category</option>
       <option value="food">Food</option>
       <option value="petrol">Travel</option>
@@ -229,7 +229,7 @@ async function showLeaderboard(){
   allExpenses = res.data
   allExpenses.forEach((item)=>{
     let li = document.createElement("li")
-    li.textContent=`Name: ${item.name} - Total Expenses: ${item.total_expenses}`
+    li.textContent=`Name: ${item.name} - Total Expenses: ${item.total_expense}`
     premium.appendChild(li);
   })
 

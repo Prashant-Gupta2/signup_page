@@ -1,6 +1,7 @@
 const Expense = require('../models/expense');
 const sequelize = require('../utils/dbConnection')
-const User = require('../models/signup')
+const User = require('../models/signup');
+const ai = require('../utils/gemini')
 
 const addExpense = async (req, res) => {
   const t = await sequelize.transaction();
@@ -12,12 +13,36 @@ const addExpense = async (req, res) => {
       await t.rollback();
       return res.status(400).json({ error: 'Amount is required' });
     }
+  const prompt = `
+   give relavent categoty based on description,
+  Rules:
+  - Return ONLY the category name
+  - No explanation
+  - No extra text
 
+  Expense: ${description}
+`;
+   
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt
+    });
+    const ai_category = response.text.trim();
+
+   const cleanAI = ai_category.trim();
+
+   const allowed = ["Food", "Travel", "Fuel", "Shopping", "Bills", "Other"];
+
+   const matched = allowed.find(
+      c => c.toLowerCase() === cleanAI.toLowerCase()
+    );
+
+    const finalCategory = matched || cleanAI;
     const expense = await Expense.create(
       {
         amount,
         description,
-        category,
+        category:finalCategory,
         userId: req.user.userId,
       },
       { transaction: t }
@@ -74,27 +99,44 @@ const getExpenses = async (req, res) => {
 };
 
 const deleteExpense = async (req, res) => {
+  const t = await sequelize.transaction();
   try {
     const { id } = req.params;
 
-    const deleted = await Expense.destroy({
+    const expense = await Expense.findOne({
       where: {
         id: id,
-        userId: req.user.userId
+        userId: req.user.userId,
       }
-    });
+    },
+    {
+      transaction:t
+    }
+  );
 
-    if (!deleted) {
+    if (!expense) {
+      await t.rollback();
       return res.status(404).json({
         message: 'Expense not found!'
       });
     }
+    const user = await User.findByPk(req.user.userId,{transaction:t});
+    const totalExpense = Number(user.total_expense) - Number(expense.amount)
+    await user.update({
+      total_expense:totalExpense
+    },{
+      transaction:t
+    }
+  )
+  await expense.destroy({transaction:t});
+  await t.commit();
 
     return res.status(200).json({
       message: 'Expense deleted!'
     });
 
   } catch (err) {
+    await t.rollback();
     console.error(err);
     res.status(500).json({ Error: 'Failed to delete expense' });
   }

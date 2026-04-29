@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Expense Report</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f6f8;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    select, button {
+      padding: 10px;
+      margin: 5px;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background: #007bff;
+      color: white;
+    }
+
+    .total {
+      margin-top: 15px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+  <h2>Expense Report</h2>
+
+  <!-- TYPE FILTER -->
+  <select id="type">
+    <option value="all">All</option>
+    <option value="daily">Daily</option>
+    <option value="weekly">Weekly</option>
+    <option value="monthly">Monthly</option>
+    <option value="yearly">Yearly</option>
+  </select>
+
+  <button onclick="generateReport()">Generate Report</button>
+  <button onclick="downloadReport()">Download</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Description</th>
+        <th>Category</th>
+        <th>Expense (₹)</th>
+      </tr>
+    </thead>
+
+    <tbody id="table"></tbody>
+  </table>
+
+  <div class="total" id="total"></div>
+</div>
+
+<script>
+let token = localStorage.getItem("token");
+
+async function generateReport() {
+  const type = document.getElementById("type").value;
+
+  const res = await fetch("http://localhost:3000/expense", {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+
+  const data = await res.json();
+  const expenses = data.data || [];
+
+  const filtered = applyTypeFilter(expenses, type);
+
+  let total = 0;
+  let rows = "";
+
+  filtered.forEach(exp => {
+    total += Number(exp.amount);
+
+    rows += `
+      <tr>
+        <td>${new Date(exp.createdAt).toLocaleDateString()}</td>
+        <td>${exp.description}</td>
+        <td>${exp.category}</td>
+        <td>${exp.amount}</td>
+      </tr>
+    `;
+  });
+
+  document.getElementById("table").innerHTML = rows;
+  document.getElementById("total").innerText = "Total Expense: ₹ " + total;
+}
+
+/* ---------------- FILTER LOGIC ---------------- */
+
+function applyTypeFilter(data, type) {
+  const now = new Date();
+
+  if (type === "all") return data;
+
+  if (type === "daily") {
+    return data.filter(exp =>
+      new Date(exp.createdAt).toDateString() === now.toDateString()
+    );
+  }
+
+  if (type === "weekly") {
+    const weekStart = new Date();
+    weekStart.setDate(now.getDate() - 7);
+
+    return data.filter(exp =>
+      new Date(exp.createdAt) >= weekStart
+    );
+  }
+
+  if (type === "monthly") {
+    return data.filter(exp => {
+      const d = new Date(exp.createdAt);
+      return d.getMonth() === now.getMonth() &&
+             d.getFullYear() === now.getFullYear();
+    });
+  }
+
+  if (type === "yearly") {
+    return data.filter(exp =>
+      new Date(exp.createdAt).getFullYear() === now.getFullYear()
+    );
+  }
+
+  return data;
+}
+function downloadReport() {
+  const rows = document.querySelectorAll("#table tr");
+
+  if (rows.length === 0) {
+    alert("No data to download");
+    return;
+  }
+
+  let csv = "Date,Description,Category,Expense\n";
+
+  rows.forEach(row => {
+    const cols = row.querySelectorAll("td");
+
+    const rowData = Array.from(cols)
+      .map(col => `"${col.innerText}"`)
+      .join(",");
+
+    csv += rowData + "\n";
+  });
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "expense-report.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+</script>
+
+</body>
+</html>

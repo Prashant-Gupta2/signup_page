@@ -14,6 +14,7 @@ const signinRoute = require('./routes/loginRoutes')
 const expenseRoute = require('./routes/expenseRoute')
 const Expense = require('./models/expense')
 const Signup = require('./models/signup')
+const ForgetPassword = require('./models/forgetPassword')
 const premimumRoute = require('./routes/premiumRoute')
 const forgetPasswordRoute = require('./routes/forgetPassRoute')
 
@@ -21,6 +22,10 @@ const forgetPasswordRoute = require('./routes/forgetPassRoute')
 // one to many relation
 Signup.hasMany(Expense, { foreignKey: 'userId' });
 Expense.belongsTo(Signup, { foreignKey: 'userId' });
+
+//one to many relation
+Signup.hasMany(ForgetPassword,{foreignKey:'userId'})
+ForgetPassword.belongsTo(Signup,{foreignKey:'userId'})
 
 app.use('/user',signupRoute);
 app.use('/user',signinRoute);

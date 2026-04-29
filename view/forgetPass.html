@@ -58,11 +58,30 @@
 </head>
 <body>
     <div>
-        <input type="email" placeholder="Enter your email">
-        <button type="submit">Submit</button>
+        <input type="email" id="email" name="email" placeholder="Enter your email">
+        <button type="submit" onclick="resetPassword()">Submit</button>
     </div> 
     <script>
-     const url ="http://localhost:3000/password/forget-password"
-    </script>   
+function resetPassword(){
+    let email = document.getElementById("email").value;
+
+    fetch("http://localhost:3000/password/forget-password", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email })
+    })
+    .then(res => res.text())
+    .then(data => {
+        console.log(data);
+        alert(data);
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Something went wrong");
+    });
+}
+</script>  
 </body>
 </html>

@@ -2,6 +2,8 @@ const Expense = require('../models/expense');
 const sequelize = require('../utils/dbConnection')
 const User = require('../models/signup');
 const ai = require('../utils/gemini')
+const { Op } = require("sequelize");
+
 
 const addExpense = async (req, res) => {
   const t = await sequelize.transaction();
@@ -98,6 +100,31 @@ const getExpenses = async (req, res) => {
   }
 };
 
+
+const getExpenseByPage = async (req, res) => {
+  const page = Number(req.params.page) || 1;
+  const limit = Number(req.params.limit) || 3;
+
+  const offset = (page - 1) * limit;
+
+  const totalItems = await Expense.count({
+    where: { userId: req.user.userId }
+  });
+
+  const expenses = await Expense.findAll({
+    where: { userId: req.user.userId },
+    limit,
+    offset,
+    order: [["createdAt", "DESC"]]
+  });
+
+  res.json({
+    data: expenses,
+    currentPage: page,
+    totalPages: Math.ceil(totalItems / limit)
+  });
+};
+
 const deleteExpense = async (req, res) => {
   const t = await sequelize.transaction();
   try {
@@ -145,5 +172,6 @@ const deleteExpense = async (req, res) => {
 module.exports = {
   addExpense,
   getExpenses,
-  deleteExpense
+  deleteExpense,
+  getExpenseByPage
 };

@@ -1,7 +1,12 @@
 const express = require('express');
 const db = require('./utils/dbConnection');
+const halmet = require('helmet')
+const fs = require('fs')
+const compression = require('compression')
 const app = express();
 const cors = require('cors');
+const morgan = require('morgan')
+
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({extended:true}))
@@ -18,6 +23,10 @@ const ForgetPassword = require('./models/forgetPassword')
 const premimumRoute = require('./routes/premiumRoute')
 const forgetPasswordRoute = require('./routes/forgetPassRoute')
 
+const accessLogStream = fs.createReadStream(path.join(__dirname,'access.log'),{flags:'a'})
+app.use(halmet());
+app.use(compression());
+app.use(morgan('combined',{stream:accessLogStream}));
 
 // one to many relation
 Signup.hasMany(Expense, { foreignKey: 'userId' });
@@ -35,7 +44,7 @@ app.use('/password',forgetPasswordRoute);
 
 db.sync()
 .then(()=>{
- app.listen(3000,()=>{
+ app.listen(process.env.PORT || 3000,()=>{
  console.log("Server is running!")
  })
 }).catch((err)=>{

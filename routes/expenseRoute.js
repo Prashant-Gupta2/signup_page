@@ -6,6 +6,7 @@ require('dotenv').config()
 
 router.post('/expense', authMiddleware, expenseController.addExpense)
 router.get('/expense', authMiddleware,expenseController.getExpenses)
+router.get('/expense/:page/:limit', authMiddleware,expenseController.getExpenseByPage)
 router.delete('/expense/:id',authMiddleware,expenseController.deleteExpense)
 
 const ai = require("../utils/gemini");

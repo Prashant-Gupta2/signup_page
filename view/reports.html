@@ -1,108 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Expense Report</title>
+<meta charset="UTF-8">
+<title>Expense Report</title>
 
-  <style>
-    body {
-      font-family: Arial;
-      background: #f4f6f8;
-      padding: 20px;
-    }
+<style>
+  body {
+    font-family: Arial;
+    background: #f4f6f8;
+    padding: 20px;
+  }
 
-    .container {
-      max-width: 900px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-    }
+  .container {
+    max-width: 900px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+  }
 
-    select, button {
-      padding: 10px;
-      margin: 5px;
-    }
+  button {
+    padding: 8px 12px;
+    margin: 5px;
+    cursor: pointer;
+  }
 
-    table {
-      width: 100%;
-      margin-top: 20px;
-      border-collapse: collapse;
-    }
+  table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+  }
 
-    th, td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      text-align: center;
-    }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+  }
 
-    th {
-      background: #007bff;
-      color: white;
-    }
+  th {
+    background: #007bff;
+    color: white;
+  }
 
-    .total {
-      margin-top: 15px;
-      font-size: 18px;
-      font-weight: bold;
-    }
-  </style>
+  .total {
+    margin-top: 15px;
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  #pages button {
+    padding: 5px 10px;
+    border: none;
+    margin: 2px;
+    cursor: pointer;
+  }
+</style>
 </head>
 
 <body>
 
 <div class="container">
-  <h2>Expense Report</h2>
 
-  <!-- TYPE FILTER -->
-  <select id="type">
-    <option value="all">All</option>
-    <option value="daily">Daily</option>
-    <option value="weekly">Weekly</option>
-    <option value="monthly">Monthly</option>
-    <option value="yearly">Yearly</option>
-  </select>
+<h2>Expense Report</h2>
 
-  <button onclick="generateReport()">Generate Report</button>
-  <button onclick="downloadReport()">Download</button>
+<button onclick="generateReport(1)">Load Report</button>
+<button onclick="downloadReport()">Download</button>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Description</th>
-        <th>Category</th>
-        <th>Expense (₹)</th>
-      </tr>
-    </thead>
+<div style="margin-top:15px;">
+  <button onclick="prevPage()">Prev</button>
+  <span id="pages"></span>
+  <button onclick="nextPage()">Next</button>
+</div>
 
-    <tbody id="table"></tbody>
-  </table>
+<table>
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Description</th>
+      <th>Category</th>
+      <th>Expense (₹)</th>
+    </tr>
+  </thead>
+  <tbody id="table"></tbody>
+</table>
 
-  <div class="total" id="total"></div>
+<div class="total" id="total"></div>
+
 </div>
 
 <script>
-let token = localStorage.getItem("token");
+let currentPage = 1;
+let totalPages = 1;
+const limit = 3;
 
-async function generateReport() {
-  const type = document.getElementById("type").value;
+async function generateReport(page) {
 
-  const res = await fetch("http://localhost:3000/expense", {
+  const url = `http://localhost:3000/expense/${page}/${limit}`;
+
+  console.log("Fetching:", url);
+
+  const res = await fetch(url, {
     headers: {
-      Authorization: `Bearer ${token}`
+      Authorization: `Bearer ${localStorage.getItem("token")}`
     }
   });
 
   const data = await res.json();
+
+  console.log("Response:", data);
+
   const expenses = data.data || [];
 
-  const filtered = applyTypeFilter(expenses, type);
+  currentPage = data.currentPage;
+  totalPages = data.totalPages;
 
-  let total = 0;
   let rows = "";
+  let total = 0;
 
-  filtered.forEach(exp => {
+  expenses.forEach(exp => {
     total += Number(exp.amount);
 
     rows += `
@@ -116,47 +131,45 @@ async function generateReport() {
   });
 
   document.getElementById("table").innerHTML = rows;
-  document.getElementById("total").innerText = "Total Expense: ₹ " + total;
+  document.getElementById("total").innerText = "Total: ₹ " + total;
+
+  renderPages();
 }
 
-/* ---------------- FILTER LOGIC ---------------- */
+function renderPages() {
+  let html = "";
 
-function applyTypeFilter(data, type) {
-  const now = new Date();
-
-  if (type === "all") return data;
-
-  if (type === "daily") {
-    return data.filter(exp =>
-      new Date(exp.createdAt).toDateString() === now.toDateString()
-    );
+  for (let i = 1; i <= totalPages; i++) {
+    html += `
+      <button onclick="goToPage(${i})"
+        style="
+          background:${i === currentPage ? '#007bff' : '#eee'};
+          color:${i === currentPage ? 'white' : 'black'};
+        ">
+        ${i}
+      </button>
+    `;
   }
 
-  if (type === "weekly") {
-    const weekStart = new Date();
-    weekStart.setDate(now.getDate() - 7);
-
-    return data.filter(exp =>
-      new Date(exp.createdAt) >= weekStart
-    );
-  }
-
-  if (type === "monthly") {
-    return data.filter(exp => {
-      const d = new Date(exp.createdAt);
-      return d.getMonth() === now.getMonth() &&
-             d.getFullYear() === now.getFullYear();
-    });
-  }
-
-  if (type === "yearly") {
-    return data.filter(exp =>
-      new Date(exp.createdAt).getFullYear() === now.getFullYear()
-    );
-  }
-
-  return data;
+  document.getElementById("pages").innerHTML = html;
 }
+
+function goToPage(page) {
+  generateReport(page);
+}
+
+function nextPage() {
+  if (currentPage < totalPages) {
+    generateReport(currentPage + 1);
+  }
+}
+
+function prevPage() {
+  if (currentPage > 1) {
+    generateReport(currentPage - 1);
+  }
+}
+
 function downloadReport() {
   const rows = document.querySelectorAll("#table tr");
 
@@ -187,6 +200,7 @@ function downloadReport() {
   a.click();
   document.body.removeChild(a);
 }
+
 </script>
 
 </body>

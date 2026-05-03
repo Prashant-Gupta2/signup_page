@@ -5,10 +5,15 @@
 <title>Expense Report</title>
 
 <style>
+  * {
+    box-sizing: border-box;
+  }
+
   body {
-    font-family: Arial;
-    background: #f4f6f8;
-    padding: 20px;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #eef2f7, #d9e4f5);
+    margin: 0;
+    padding: 10px;
   }
 
   .container {
@@ -16,23 +21,48 @@
     margin: auto;
     background: white;
     padding: 20px;
-    border-radius: 10px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    animation: fadeIn 0.6s ease-in-out;
+  }
+
+  h2 {
+    text-align: center;
+    margin-bottom: 15px;
   }
 
   button {
-    padding: 8px 12px;
+    padding: 8px 14px;
     margin: 5px;
+    border: none;
+    border-radius: 6px;
+    background: #007bff;
+    color: white;
     cursor: pointer;
+    transition: 0.3s;
+  }
+
+  button:hover {
+    background: #0056b3;
+    transform: scale(1.05);
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 10px;
   }
 
   table {
     width: 100%;
     margin-top: 20px;
     border-collapse: collapse;
+    animation: slideUp 0.5s ease;
   }
 
   th, td {
-    border: 1px solid #ddd;
     padding: 10px;
     text-align: center;
   }
@@ -42,17 +72,75 @@
     color: white;
   }
 
+  tr {
+    border-bottom: 1px solid #ddd;
+    transition: 0.3s;
+  }
+
+  tr:hover {
+    background: #f1f7ff;
+  }
+
   .total {
     margin-top: 15px;
     font-size: 18px;
     font-weight: bold;
+    text-align: right;
+  }
+
+  #pages {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 10px;
   }
 
   #pages button {
-    padding: 5px 10px;
-    border: none;
-    margin: 2px;
-    cursor: pointer;
+    background: #eee;
+    color: black;
+  }
+
+  /* 🔥 Animations */
+  @keyframes fadeIn {
+    from {opacity: 0; transform: translateY(-10px);}
+    to {opacity: 1; transform: translateY(0);}
+  }
+
+  @keyframes slideUp {
+    from {opacity: 0; transform: translateY(20px);}
+    to {opacity: 1; transform: translateY(0);}
+  }
+
+  /* 📱 Mobile Responsive */
+  @media (max-width: 600px) {
+    table, thead, tbody, th, td, tr {
+      display: block;
+    }
+
+    thead {
+      display: none;
+    }
+
+    tr {
+      margin-bottom: 10px;
+      background: #fff;
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.05);
+    }
+
+    td {
+      text-align: left;
+      padding: 8px;
+      position: relative;
+    }
+
+    td::before {
+      content: attr(data-label);
+      font-weight: bold;
+      display: block;
+      color: #555;
+    }
   }
 </style>
 </head>
@@ -66,7 +154,7 @@
 <button onclick="generateReport(1)">Load Report</button>
 <button onclick="downloadReport()">Download</button>
 
-<div style="margin-top:15px;">
+<div class="controls">
   <button onclick="prevPage()">Prev</button>
   <span id="pages"></span>
   <button onclick="nextPage()">Next</button>
@@ -87,7 +175,7 @@
 <div class="total" id="total"></div>
 
 </div>
-
+<a href="../expense.html">Back to expense</a>
 <script>
 let currentPage = 1;
 let totalPages = 1;
@@ -169,38 +257,36 @@ function prevPage() {
     generateReport(currentPage - 1);
   }
 }
+async function downloadReport() {
+  try {
+    const res = await fetch("http://localhost:3000/expense/download", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      }
+    });
 
-function downloadReport() {
-  const rows = document.querySelectorAll("#table tr");
+    if (!res.ok) {
+      throw new Error("Server error");
+    }
 
-  if (rows.length === 0) {
-    alert("No data to download");
-    return;
+    const data = await res.json();
+
+    if (data.url) {
+      alert("Report generated successfully!");
+      console.log("S3 URL:", data.url);
+
+      window.open(data.url, "_blank");
+    } else {
+      alert("No URL received");
+    }
+
+  } catch (error) {
+    console.error("Error:", error);
+    alert("Failed to generate report");
   }
-
-  let csv = "Date,Description,Category,Expense\n";
-
-  rows.forEach(row => {
-    const cols = row.querySelectorAll("td");
-
-    const rowData = Array.from(cols)
-      .map(col => `"${col.innerText}"`)
-      .join(",");
-
-    csv += rowData + "\n";
-  });
-
-  const blob = new Blob([csv], { type: "text/csv" });
-  const url = window.URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "expense-report.csv";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
 }
-
 </script>
 
 </body>

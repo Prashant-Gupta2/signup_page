@@ -19,14 +19,16 @@ const signinRoute = require('./routes/loginRoutes')
 const expenseRoute = require('./routes/expenseRoute')
 const Expense = require('./models/expense')
 const Signup = require('./models/signup')
+const Report = require('./models/report')
 const ForgetPassword = require('./models/forgetPassword')
 const premimumRoute = require('./routes/premiumRoute')
 const forgetPasswordRoute = require('./routes/forgetPassRoute')
+const reportDownloadedRoute = require('./routes/reportRoute')
 
-const accessLogStream = fs.createReadStream(path.join(__dirname,'access.log'),{flags:'a'})
+// const accessLogStream = fs.createReadStream(path.join(__dirname,'access.log'),{flags:'a'})
 app.use(halmet());
 app.use(compression());
-app.use(morgan('combined',{stream:accessLogStream}));
+// app.use(morgan('combined',{stream:accessLogStream}));
 
 // one to many relation
 Signup.hasMany(Expense, { foreignKey: 'userId' });
@@ -36,11 +38,15 @@ Expense.belongsTo(Signup, { foreignKey: 'userId' });
 Signup.hasMany(ForgetPassword,{foreignKey:'userId'})
 ForgetPassword.belongsTo(Signup,{foreignKey:'userId'})
 
+Signup.hasMany(Report, { foreignKey: 'userId' });
+Report.belongsTo(Signup, { foreignKey: 'userId' });
+
 app.use('/user',signupRoute);
 app.use('/user',signinRoute);
 app.use('/',expenseRoute);
 app.use('/premium',premimumRoute);
 app.use('/password',forgetPasswordRoute);
+app.use('/',reportDownloadedRoute);
 
 db.sync()
 .then(()=>{

@@ -11,7 +11,7 @@ const sequelize = new Sequelize(
 );
 sequelize.authenticate()
 .then(()=>{
- console.log("Database connecrted")
+ console.log("Database connected")
 }).catch((err)=>{
  console.log(err)
 })

@@ -3,38 +3,65 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
+  <title>AI Expense Tracker - Login</title>
 
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    #forget{
-      margin-top: 7px;
-    }
+
     body {
       height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
     }
 
     .container {
-      background: #fff;
-      padding: 30px;
+      background: #ffffff;
+      padding: 35px 30px;
       width: 100%;
       max-width: 400px;
-      border-radius: 10px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      border-radius: 12px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+      animation: fadeIn 0.6s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: #4facfe;
+      font-weight: bold;
+      letter-spacing: 1px;
     }
 
     h2 {
       text-align: center;
+      margin-bottom: 5px;
+      color: #333;
+    }
+
+    .welcome {
+      text-align: center;
       margin-bottom: 20px;
+      font-size: 14px;
+      color: #777;
     }
 
     .input-group {
@@ -44,41 +71,59 @@
     .input-group label {
       display: block;
       margin-bottom: 5px;
-      font-size: 14px;
+      font-size: 13px;
+      color: #555;
     }
 
     .input-group input {
       width: 100%;
-      padding: 10px;
+      padding: 11px;
       border: 1px solid #ccc;
-      border-radius: 5px;
+      border-radius: 6px;
       outline: none;
+      transition: 0.3s;
     }
 
     .input-group input:focus {
       border-color: #4facfe;
+      box-shadow: 0 0 5px rgba(79,172,254,0.4);
     }
 
     button {
       width: 100%;
       padding: 12px;
       border: none;
-      background: #4facfe;
+      background: linear-gradient(135deg, #4facfe, #00c6ff);
       color: white;
-      font-size: 16px;
-      border-radius: 5px;
+      font-size: 15px;
+      border-radius: 6px;
       cursor: pointer;
       transition: 0.3s;
+      font-weight: bold;
     }
 
     button:hover {
-      background: #00c6ff;
+      transform: translateY(-1px);
+      box-shadow: 0 5px 12px rgba(0,0,0,0.2);
+    }
+
+    #forget {
+      margin-top: 8px;
+      background: transparent;
+      color: #4facfe;
+      border: 1px solid #4facfe;
+    }
+
+    #forget:hover {
+      background: #4facfe;
+      color: #fff;
     }
 
     .signup-link {
       text-align: center;
-      margin-top: 15px;
-      font-size: 14px;
+      margin-top: 18px;
+      font-size: 13px;
+      color: #555;
     }
 
     .signup-link a {
@@ -96,22 +141,24 @@
 <body>
 
   <div class="container">
-    <h2>Login</h2>
+    
+    <div class="brand">AI EXPENSE TRACKER</div>
+    <h2>Welcome Back</h2>
+    <div class="welcome">Login to manage your smart expenses</div>
 
     <form id="loginForm">
       <div class="input-group">
         <label for="email">Email</label>
-        <input type="email" id="email" placeholder="Enter email" >
+        <input type="email" id="email" placeholder="Enter email">
       </div>
 
       <div class="input-group">
         <label for="password">Password</label>
-        <input type="password" id="password" placeholder="Enter password" >
+        <input type="password" id="password" placeholder="Enter password">
       </div>
 
       <button type="submit">Login</button>
-      <button id="forget" onclick="forgetPassword()" type="button">Forget Password</button>
-
+      <button id="forget" onclick="forgetPassword()" type="button">Forgot Password?</button>
     </form>
 
     <div class="signup-link">
@@ -122,8 +169,7 @@
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
   <script>
-    const url = "http://localhost:3000/user/login";
-
+   const API_BASE_URL = 'http://localhost:3000';
    let form = document.getElementById("loginForm").addEventListener("submit", async (e) => {
       e.preventDefault();
 
@@ -137,7 +183,7 @@
         return;
       }
        try {
-    const response = await axios.post("http://localhost:3000/user/login", payload);
+    const response = await axios.post(`${API_BASE_URL}/user/login`, payload);
 
     console.log(response.data);
 
@@ -146,7 +192,7 @@
     localStorage.setItem("token", token);
 
     alert("Login successful!");
-    window.location.href = "/expense.html";
+    window.location.href = "./expense.html";
 
   } catch (err) {
     console.log(err.response?.data);
@@ -154,7 +200,7 @@
   }
     });
     function forgetPassword(){
-      window.location.href="./view/forgetPass.html"
+      window.location.href="./forgetPass.html"
     }
   </script>
 

@@ -27,6 +27,17 @@ app.use(express.static(path.join(__dirname, "view")));
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname,"login.html"))
 });
+app.get("/login", (req, res) => {
+  res.sendFile(path.join(__dirname, "view", "login.html"));
+});
+
+app.get("/expense-page", (req, res) => {
+  res.sendFile(path.join(__dirname, "view", "expense.html"));
+});
+
+app.get("/signup", (req, res) => {
+  res.sendFile(path.join(__dirname, "view", "signup.html"));
+});
 
 // ---------- MODELS ----------
 const Expense = require('./models/expense');

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Forgot Password</title>
 
     <style>
         body {
@@ -12,76 +12,139 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: #f4f6f8;
-            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        div {
+        .container {
             background: #ffffff;
-            padding: 20px 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            display: flex;
-            gap: 10px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+            text-align: center;
+            width: 100%;
+            max-width: 350px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        p {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 20px;
         }
 
         input[type="email"] {
-            padding: 10px;
+            padding: 11px;
             border: 1px solid #ccc;
             border-radius: 6px;
             outline: none;
             font-size: 14px;
-            width: 220px;
+            width: 100%;
+            margin-bottom: 15px;
             transition: 0.3s;
         }
 
         input[type="email"]:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 4px rgba(0,123,255,0.3);
+            border-color: #4facfe;
+            box-shadow: 0 0 6px rgba(79,172,254,0.4);
         }
 
         button {
-            padding: 10px 16px;
+            width: 100%;
+            padding: 11px;
             border: none;
             border-radius: 6px;
-            background: #007bff;
+            background: linear-gradient(135deg, #4facfe, #00c6ff);
             color: white;
             font-size: 14px;
             cursor: pointer;
             transition: 0.3s;
+            font-weight: bold;
         }
 
         button:hover {
-            background: #0056b3;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+        }
+
+        .back-btn {
+            margin-top: 10px;
+            background: transparent;
+            color: #4facfe;
+            border: 1px solid #4facfe;
+        }
+
+        .back-btn:hover {
+            background: #4facfe;
+            color: white;
         }
     </style>
 </head>
+
 <body>
-    <div>
+
+    <div class="container">
+        <h2>Forgot Password</h2>
+        <p>Enter your email to receive reset instructions</p>
+
         <input type="email" id="email" name="email" placeholder="Enter your email">
         <button type="submit" onclick="resetPassword()">Submit</button>
+
+        <button class="back-btn" onclick="goToLogin()">Back to Login</button>
     </div> 
+
     <script>
-function resetPassword(){
+const API_BASE_URL = 'http://localhost:3000';
+
+function resetPassword() {
     let email = document.getElementById("email").value;
 
-    fetch("http://localhost:3000/password/forget-password", {
+    fetch(`${API_BASE_URL}/password/forget-password`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
         body: JSON.stringify({ email })
     })
-    .then(res => res.text())
+    .then(async (res) => {
+        const data = await res.json();
+
+        if (!res.ok) {
+            throw new Error(data.message || "Request failed");
+        }
+
+        return data;
+    })
     .then(data => {
         console.log(data);
-        alert(data);
+        alert(data.message); 
     })
     .catch(err => {
         console.error(err);
-        alert("Something went wrong");
+        alert(err.message);
     });
 }
-</script>  
+
+function goToLogin() {
+    window.location.href = "./login.html";
+}
+</script>
+
 </body>
 </html>

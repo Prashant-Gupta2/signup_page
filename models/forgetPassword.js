@@ -18,6 +18,9 @@ const ForgetPassword = db.define('forgetPassword', {
   active: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
+  },
+  expiresAt:{
+    type:Date
   }
 });
 

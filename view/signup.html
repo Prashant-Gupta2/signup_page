@@ -128,7 +128,8 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script>
-   const url = 'http://localhost:3000/user/signup';
+const API_BASE_URL = 'http://localhost:3000';
+  
    document.addEventListener("DOMContentLoaded",()=>{
    const form = document.getElementById("signupform");
 
@@ -147,7 +148,7 @@
       return;
     }
     try{
-      let res = await axios.post(url,payload);
+      let res = await axios.post(`${API_BASE_URL}/user/signup`,payload);
       alert('Account created!');  
       form.reset();
     } 

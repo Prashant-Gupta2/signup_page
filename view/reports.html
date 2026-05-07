@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Expense Report</title>
+<title>AI Expense Report</title>
 
 <style>
   * {
@@ -10,84 +10,102 @@
   }
 
   body {
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #eef2f7, #d9e4f5);
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
     margin: 0;
-    padding: 10px;
+    padding: 20px;
+    color: #333;
   }
 
   .container {
-    max-width: 900px;
+    max-width: 950px;
     margin: auto;
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 14px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.25);
     animation: fadeIn 0.6s ease-in-out;
   }
 
   h2 {
     text-align: center;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
+    color: #2a5298;
+  }
+
+  /* Top Buttons */
+  .top-actions {
+    text-align: center;
+    margin-bottom: 10px;
   }
 
   button {
-    padding: 8px 14px;
+    padding: 9px 16px;
     margin: 5px;
     border: none;
     border-radius: 6px;
-    background: #007bff;
+    background: linear-gradient(135deg, #4facfe, #00c6ff);
     color: white;
     cursor: pointer;
     transition: 0.3s;
+    font-weight: 500;
   }
 
   button:hover {
-    background: #0056b3;
-    transform: scale(1.05);
+    transform: translateY(-1px);
+    box-shadow: 0 5px 12px rgba(0,0,0,0.2);
   }
 
   .controls {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 5px;
+    gap: 6px;
     margin-top: 10px;
   }
 
+  /* Table */
   table {
     width: 100%;
     margin-top: 20px;
     border-collapse: collapse;
-    animation: slideUp 0.5s ease;
+    overflow: hidden;
+    border-radius: 10px;
   }
 
   th, td {
-    padding: 10px;
+    padding: 12px;
     text-align: center;
   }
 
   th {
-    background: #007bff;
+    background: linear-gradient(135deg, #4facfe, #00c6ff);
     color: white;
+    font-weight: 600;
   }
 
   tr {
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #eee;
     transition: 0.3s;
   }
 
+  tr:nth-child(even) {
+    background: #f8fbff;
+  }
+
   tr:hover {
-    background: #f1f7ff;
+    background: #eaf4ff;
   }
 
   .total {
-    margin-top: 15px;
+    margin-top: 18px;
     font-size: 18px;
     font-weight: bold;
     text-align: right;
+    color: #2a5298;
   }
 
+  /* Pagination */
   #pages {
     display: flex;
     flex-wrap: wrap;
@@ -96,23 +114,42 @@
   }
 
   #pages button {
-    background: #eee;
-    color: black;
+    background: #eef3ff;
+    color: #333;
+    border: 1px solid #d0dfff;
   }
 
-  /* 🔥 Animations */
+  #pages button:hover {
+    background: #4facfe;
+    color: white;
+  }
+
+  /* Back link */
+  a {
+    display: block;
+    text-align: center;
+    margin-top: 15px;
+    text-decoration: none;
+    color: #4facfe;
+    font-weight: bold;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  /* Animations */
   @keyframes fadeIn {
     from {opacity: 0; transform: translateY(-10px);}
     to {opacity: 1; transform: translateY(0);}
   }
 
-  @keyframes slideUp {
-    from {opacity: 0; transform: translateY(20px);}
-    to {opacity: 1; transform: translateY(0);}
-  }
-
-  /* 📱 Mobile Responsive */
+  /* Mobile */
   @media (max-width: 600px) {
+    body {
+      padding: 10px;
+    }
+
     table, thead, tbody, th, td, tr {
       display: block;
     }
@@ -122,11 +159,11 @@
     }
 
     tr {
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       background: #fff;
-      border-radius: 8px;
-      padding: 10px;
-      box-shadow: 0 5px 10px rgba(0,0,0,0.05);
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: 0 5px 12px rgba(0,0,0,0.08);
     }
 
     td {
@@ -139,7 +176,8 @@
       content: attr(data-label);
       font-weight: bold;
       display: block;
-      color: #555;
+      color: #666;
+      margin-bottom: 2px;
     }
   }
 </style>
@@ -149,10 +187,12 @@
 
 <div class="container">
 
-<h2>Expense Report</h2>
+<h2>📊 AI Expense Report</h2>
 
-<button onclick="generateReport(1)">Load Report</button>
-<button onclick="downloadReport()">Download</button>
+<div class="top-actions">
+  <button onclick="generateReport(1)">Load Report</button>
+  <button onclick="downloadReport()">Download</button>
+</div>
 
 <div class="controls">
   <button onclick="prevPage()">Prev</button>
@@ -175,15 +215,18 @@
 <div class="total" id="total"></div>
 
 </div>
-<a href="../expense.html">Back to expense</a>
+
+<a href="../view/expense.html">⬅ Back to expense</a>
+
 <script>
+const API_BASE_URL = 'http://localhost:3000';
 let currentPage = 1;
 let totalPages = 1;
 const limit = 3;
 
 async function generateReport(page) {
 
-  const url = `http://localhost:3000/expense/${page}/${limit}`;
+  const url = `${API_BASE_URL}/expense/${page}/${limit}`;
 
   console.log("Fetching:", url);
 
@@ -231,8 +274,8 @@ function renderPages() {
     html += `
       <button onclick="goToPage(${i})"
         style="
-          background:${i === currentPage ? '#007bff' : '#eee'};
-          color:${i === currentPage ? 'white' : 'black'};
+          background:${i === currentPage ? '#4facfe' : '#eef3ff'};
+          color:${i === currentPage ? 'white' : '#333'};
         ">
         ${i}
       </button>
@@ -257,9 +300,10 @@ function prevPage() {
     generateReport(currentPage - 1);
   }
 }
+
 async function downloadReport() {
   try {
-    const res = await fetch("http://localhost:3000/expense/download", {
+    const res = await fetch(`${API_BASE_URL}/expense/download`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
